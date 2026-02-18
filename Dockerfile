@@ -19,8 +19,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the current directory contents into the container at /app
 COPY project /app/project
 
-# Generate avatars during build
-RUN python project/create_assets.py
+# Generate avatars during build - REMOVED to use custom uploaded avatars
+# RUN python project/create_assets.py
 
 # Make port 7860 available to the world outside this container
 EXPOSE 7860

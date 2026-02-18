@@ -9,8 +9,7 @@ venv/
 target/
 .idea/
 .vscode/
-# Ignore generated avatars, they are created at build time
-project/static/avatars/*.png
-project/static/avatars/*.jpg
+# project/static/avatars/*.png -> Removed to allow custom avatars
+# project/static/avatars/*.jpg -> Removed to allow custom avatars
 # Ignore local temp files
 temp_capture.jpg
