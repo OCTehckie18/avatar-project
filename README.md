@@ -1,3 +1,12 @@
+---
+title: Avatar Kiosk Christ
+emoji: 🎥
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # Event Welcome Kiosk
 
 A minimal, local web application for an event welcome kiosk. It captures a webcam image, detects gender and attire (formal/casual), and displays a personalized welcome message with a corresponding avatar.
