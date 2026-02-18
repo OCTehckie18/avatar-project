@@ -50,7 +50,13 @@ def create_avatar(filename, gender, attire, bg_color, text_color):
     print(f"Created {path}")
 
 # Generate 4 variations
-create_avatar('male_formal.png', 'male', 'formal', '#e2e8f0', '#0f172a')
-create_avatar('male_casual.png', 'male', 'casual', '#e2e8f0', '#0f172a')
-create_avatar('female_formal.png', 'female', 'formal', '#fce7f3', '#831843') # Pinkish theme for female variants distinctness
-create_avatar('female_casual.png', 'female', 'casual', '#fce7f3', '#831843')
+# Generate variations matching app.py return values: 'suit', 'shirt', 'traditional'
+# Male
+create_avatar('male_suit.png', 'male', 'formal', '#e2e8f0', '#0f172a')
+create_avatar('male_shirt.png', 'male', 'casual', '#e2e8f0', '#0f172a')
+create_avatar('male_traditional.png', 'male', 'formal', '#fef3c7', '#78350f') # Gold/Brown theme
+
+# Female
+create_avatar('female_suit.png', 'female', 'formal', '#fce7f3', '#831843')
+create_avatar('female_shirt.png', 'female', 'casual', '#fce7f3', '#831843')
+create_avatar('female_traditional.png', 'female', 'formal', '#fef3c7', '#78350f')
