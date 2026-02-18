@@ -5,3 +5,4 @@ tensorflow
 numpy
 pillow
 gunicorn
+tf-keras
