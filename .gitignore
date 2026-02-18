@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+target/
+.idea/
+.vscode/
+# Ignore generated avatars, they are created at build time
+project/static/avatars/*.png
+project/static/avatars/*.jpg
+# Ignore local temp files
+temp_capture.jpg

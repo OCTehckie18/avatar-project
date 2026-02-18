@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Kiosk - Christ University</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="hidden">
+        <div class="spinner"></div>
+        <p>Analyzing...</p>
+    </div>
+
+    <!-- Camera/Input Section -->
+    <div id="camera-section" class="container">
+        <header>
+            <h1>Event Welcome Kiosk</h1>
+            <p>Please stand in front of the camera</p>
+        </header>
+        
+        <div class="camera-wrapper">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" class="hidden"></canvas>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="nameInput" placeholder="Enter your name" autocomplete="off">
+            <button id="captureBtn">Generate Welcome</button>
+        </div>
+    </div>
+
+    <!-- Result/Welcome Section -->
+    <div id="result-section" class="container hidden full-screen">
+        <div class="content-split">
+            <div class="avatar-container">
+                <img id="avatarImage" src="" alt="Your Avatar">
+            </div>
+            <div class="message-container">
+                <h2 id="greetingName">Hi Guest,</h2>
+                <h3>Welcome to Christ University.</h3>
+                <p>Thanks for joining the <strong>Corporate Conclave</strong> by the School of Sciences.</p>
+                <p class="sub-text">We are happy to have you today.</p>
+                
+                <button id="resetBtn" class="secondary-btn">Next Guest</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
