@@ -11,58 +11,132 @@
 
 <body>
 
-    <!-- Loading Overlay -->
-    <div id="loading" class="hidden">
-        <div class="spinner"></div>
-        <p>Analyzing...</p>
-    </div>
-
-    <!-- Camera/Input Section -->
-    <div id="camera-section" class="container">
-        <img src="{{ url_for('static', filename='avatars/logo-christ-new.png') }}" class="top-right-logo"
+    <!-- Global Header -->
+    <header class="app-header">
+        <div class="header-left">School of Sciences</div>
+        <img src="{{ url_for('static', filename='avatars/logo-christ-new.png') }}" class="header-logo"
             alt="Christ University Logo">
-        <header>
-            <h1>SocioLift Interface</h1>
-            <p>Please stand in front of the camera</p>
-        </header>
+    </header>
 
-        <div class="camera-wrapper">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas" class="hidden"></canvas>
+    <main class="main-content">
+        <!-- Loading Overlay -->
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Analyzing...</p>
         </div>
 
-        <div class="input-group">
-            <input type="text" id="nameInput" placeholder="Enter your name" autocomplete="off">
-            <button id="captureBtn">Generate Welcome</button>
-        </div>
-    </div>
+        <!-- Camera/Input Section -->
+        <div id="camera-section" class="container">
+            <!-- Header moved inside content-split for layout -->
+            <div class="content-split">
+                <div class="camera-container">
+                    <!-- Live camera hidden but active for capture -->
+                    <video id="video" autoplay playsinline muted
+                        style="opacity: 0; position: absolute; pointer-events: none;"></video>
 
-    <!-- Result/Welcome Section -->
-    <div id="result-section" class="container hidden full-screen">
-        <img src="{{ url_for('static', filename='avatars/logo-christ-new.png') }}" class="top-right-logo"
-            alt="Christ University Logo">
-        <div class="content-split">
-            <div class="avatar-container">
-                <img id="avatarImage" src="" alt="Your Avatar">
+                    <!-- Owl Video Source (Hidden) -->
+                    <video id="owlVideo" src="{{ url_for('static', filename='avatars/owl-canvas-gs.mp4') }}" autoplay
+                        loop muted playsinline style="display: none;"></video>
+
+                    <!-- Processed Canvas (Visible) -->
+                    <canvas id="owlCanvas" class="owl-canvas"></canvas>
+
+                    <!-- User positioning feedback (Canvas for capture) -->
+                    <canvas id="canvas" style="display:none;"></canvas>
+                </div>
+
+                <div class="input-group">
+                    <header class="section-header">
+                        <h1>SocioLift Interface</h1>
+                        <p>Hello, May I know your name please?</p>
+                    </header>
+                    <div class="input-wrapper">
+                        <input type="text" id="nameInput" placeholder="Your Name" autocomplete="off">
+                        <button id="captureBtn">Wave Hand! 👋🏻</button>
+                    </div>
+                </div>
             </div>
-            <div class="message-container">
-                <h2 id="greetingName">Hi Guest,</h2>
-                <h3>Welcome to Christ University.</h3>
-                <p>Thanks for joining the <strong>Corporate Conclave</strong> by the School of Sciences.</p>
-                <p class="sub-text">We are happy to have you today.</p>
-
-                <button id="resetBtn" class="secondary-btn">Next Guest</button>
-            </div>
         </div>
-        <button id="screenReaderBtn" class="screen-reader-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
-            <span>Read Message</span>
-        </button>
-    </div>
+
+        <!-- Result/Welcome Section -->
+        <div id="result-section" class="container hidden full-screen">
+            <div class="content-split">
+                <!-- Agenda Table (Left Side) -->
+                <div class="agenda-box">
+                    <h2>Agenda</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Event</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>09:30 AM</td>
+                                <td>Registration & Tea</td>
+                            </tr>
+                            <tr>
+                                <td>10:00 AM</td>
+                                <td>Inauguration Ceremony</td>
+                            </tr>
+                            <tr>
+                                <td>10:30 AM</td>
+                                <td>Keynote Address</td>
+                            </tr>
+                            <tr>
+                                <td>11:30 AM</td>
+                                <td>Panel Discussion</td>
+                            </tr>
+                            <tr>
+                                <td>01:00 PM</td>
+                                <td>Networking Lunch</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Delegates QR Box (Center/Left) -->
+                <div class="delegates-box">
+                    <h3>Details of Delegates</h3>
+                    <div class="qr-container">
+                        <!-- Placeholder for QR Code, replace src with actual QR image -->
+                        <img src="{{ url_for('static', filename='avatars/qr-code-session.jpeg') }}" class="qr-image"
+                            alt="Scan for Details">
+                    </div>
+                    <p>Scan to view</p>
+                </div>
+
+                <div class="avatar-box">
+                    <img id="avatarImage" src="" alt="Avatar" class="avatar-image">
+                </div>
+                <div class="speech-bubble">
+                    <div class="message-content">
+                        <h2 id="greetingName">Hi Guest,</h2>
+                        <div id="dynamicMessageContent">
+                            <h3>Welcome to Christ University.</h3>
+                            <p>Thanks for joining the <strong>Corporate Conclave</strong> by the School of Sciences.</p>
+                            <p class="sub-text">We are happy to have you today.</p>
+                        </div>
+                    </div>
+                    <button id="resetBtn" class="secondary-btn">Next Guest</button>
+                </div>
+            </div>
+            <button id="screenReaderBtn" class="screen-reader-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+                <span>Read Message</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="app-footer">
+        <p>Project Designer: Dr. Gobi R | Developers: Omkaar(2547237) and Sachin(2547245)</p>
+    </footer>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

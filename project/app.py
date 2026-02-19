@@ -2,6 +2,7 @@ import base64
 import os
 import cv2
 import numpy as np
+import pandas as pd
 from flask import Flask, request, jsonify, render_template
 import logging
 from deepface import DeepFace
@@ -118,6 +119,26 @@ def analyze_gender(img_path):
         print(f"Error in gender analysis: {e}")
         return 'male' # Fallback
 
+def get_random_message():
+    """
+    Reads a random message from messages.xlsx.
+    Expected format: 1 column named 'message'.
+    """
+    try:
+        file_path = os.path.join(BASE_DIR, 'messages.xlsx')
+        if not os.path.exists(file_path):
+            return "Welcome to Christ University."
+        
+        df = pd.read_excel(file_path)
+        if df.empty or 'message' not in df.columns:
+             return "Welcome to Christ University."
+             
+        random_row = df.sample(n=1)
+        return random_row['message'].values[0]
+    except Exception as e:
+        print(f"Error reading messages.xlsx: {e}")
+        return "Welcome to Christ University."
+
 # --- Routes ---
 
 @app.route('/')
@@ -164,12 +185,16 @@ def analyze():
         if os.path.exists(temp_filename):
             os.remove(temp_filename)
 
+        # --- Get Random Message ---
+        welcome_message = get_random_message()
+
         print(f"Analysis Result: Gender={gender}, Attire={attire}")
 
         return jsonify({
             'name': user_name,
             'gender': gender,
-            'attire': attire
+            'attire': attire,
+            'message': welcome_message
         })
 
     except Exception as e:
@@ -177,11 +202,12 @@ def analyze():
         return jsonify({
             'name': user_name,
             'gender': 'male', # Failsafe
-            'attire': 'shirt' # Failsafe
+            'attire': 'shirt', # Failsafe
+            'message': "Welcome to Christ University."
         }), 200 # Return 200 with default to not break frontend flow
 
 if __name__ == '__main__':
     # Ensure static directories exist
     os.makedirs(AVATAR_DIR, exist_ok=True)
     port = int(os.environ.get('PORT', 7860))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=False, host='0.0.0.0', port=port)
