@@ -1,9 +1,13 @@
 :root {
-    --primary-bg: #0f172a; /* Slate 900 */
-    --accent: #3b82f6;     /* Blue 500 */
+    --primary-bg: #0f172a;
+    /* Slate 900 */
+    --accent: #3b82f6;
+    /* Blue 500 */
     --accent-glow: rgba(59, 130, 246, 0.5);
-    --text-color: #f8fafc; /* Slate 50 */
-    --card-bg: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
+    --text-color: #f8fafc;
+    /* Slate 50 */
+    --card-bg: rgba(30, 41, 59, 0.7);
+    /* Slate 800 with opacity */
     --glass-border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -33,6 +37,8 @@ body {
     align-items: center;
     text-align: center;
     transition: opacity 0.5s ease;
+    position: relative;
+    /* Added for absolute positioning of children */
 }
 
 .hidden {
@@ -59,7 +65,7 @@ header p {
     height: 480px;
     border-radius: 1rem;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     border: var(--glass-border);
 }
 
@@ -175,8 +181,15 @@ button:hover {
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
 }
 
 /* Loading Overlay */
@@ -205,8 +218,25 @@ button:hover {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Logo Style */
+.top-right-logo {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    width: 150px;
+    /* Adjust based on actual logo size */
+    height: auto;
+    z-index: 50;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
 }
 
 /* Responsive for smaller screens */
@@ -217,11 +247,11 @@ button:hover {
         text-align: center;
         gap: 2rem;
     }
-    
+
     .message-container {
         text-align: center;
     }
-    
+
     .avatar-container img {
         max-height: 50vh;
     }

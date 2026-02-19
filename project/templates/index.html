@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
     <!-- Loading Overlay -->
@@ -17,11 +19,13 @@
 
     <!-- Camera/Input Section -->
     <div id="camera-section" class="container">
+        <img src="{{ url_for('static', filename='avatars/logo-christ-new.png') }}" class="top-right-logo"
+            alt="Christ University Logo">
         <header>
-            <h1>Event Welcome Kiosk</h1>
+            <h1>Christ Kiosk</h1>
             <p>Please stand in front of the camera</p>
         </header>
-        
+
         <div class="camera-wrapper">
             <video id="video" autoplay playsinline></video>
             <canvas id="canvas" class="hidden"></canvas>
@@ -35,6 +39,8 @@
 
     <!-- Result/Welcome Section -->
     <div id="result-section" class="container hidden full-screen">
+        <img src="{{ url_for('static', filename='avatars/logo-christ-new.png') }}" class="top-right-logo"
+            alt="Christ University Logo">
         <div class="content-split">
             <div class="avatar-container">
                 <img id="avatarImage" src="" alt="Your Avatar">
@@ -44,7 +50,7 @@
                 <h3>Welcome to Christ University.</h3>
                 <p>Thanks for joining the <strong>Corporate Conclave</strong> by the School of Sciences.</p>
                 <p class="sub-text">We are happy to have you today.</p>
-                
+
                 <button id="resetBtn" class="secondary-btn">Next Guest</button>
             </div>
         </div>
@@ -52,4 +58,5 @@
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
+
 </html>
