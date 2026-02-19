@@ -9,6 +9,15 @@ import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
 from tensorflow.keras.preprocessing import image
 
+
+# Avatars
+# Indianish avatars
+"""
+image should be really big
+words can be small
+
+"""
+
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 

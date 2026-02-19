@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome Kiosk - Christ University</title>
+    <title>SocioLift Interface</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
@@ -22,7 +22,7 @@
         <img src="{{ url_for('static', filename='avatars/logo-christ-new.png') }}" class="top-right-logo"
             alt="Christ University Logo">
         <header>
-            <h1>Christ Kiosk</h1>
+            <h1>SocioLift Interface</h1>
             <p>Please stand in front of the camera</p>
         </header>
 
@@ -54,6 +54,14 @@
                 <button id="resetBtn" class="secondary-btn">Next Guest</button>
             </div>
         </div>
+        <button id="screenReaderBtn" class="screen-reader-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+            <span>Read Message</span>
+        </button>
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
