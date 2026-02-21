@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Auto-read message
             const welcomeText = `Hi ${data.name}, ${data.message || ""}`;
             setTimeout(() => {
-                speakMessage(welcomeText);
+                speakMessage(welcomeText, gender);
             }, 1000);
 
         } catch (err) {
@@ -206,29 +206,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial load
     loadVoices();
 
-    function speakMessage(text) {
+    function speakMessage(text, gender) {
         if (synth.speaking) {
             synth.cancel();
         }
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1;
 
         if (voices.length === 0) voices = synth.getVoices();
 
-        const femaleVoice = voices.find(voice =>
-            voice.name.includes('Zira') ||
-            voice.name.includes('Google UK English Female') ||
-            voice.name.includes('Samantha') ||
-            voice.name.toLowerCase().includes('female')
-        );
+        if (gender === 'male') {
+            // Bheem's Sound (young, robust boy)
+            const maleVoice = voices.find(voice =>
+                voice.name.includes('David') ||
+                voice.name.includes('Google UK English Male') ||
+                (voice.name.toLowerCase().includes('male') && !voice.name.toLowerCase().includes('female'))
+            );
 
-        if (femaleVoice) {
-            utterance.voice = femaleVoice;
-            utterance.pitch = 1.1;
+            if (maleVoice) utterance.voice = maleVoice;
+            else console.log("No male voice found, using default");
+
+            utterance.pitch = 0.8; // Deeper pitch for Bheem
+            utterance.rate = 0.95; // Slightly slower, stronger tone
         } else {
-            console.log("No female voice found, using default with higher pitch");
-            utterance.pitch = 1.0;
+            // Chutki's Sound (sweet, high pitched girl)
+            const femaleVoice = voices.find(voice =>
+                voice.name.includes('Zira') ||
+                voice.name.includes('Google UK English Female') ||
+                voice.name.includes('Samantha') ||
+                voice.name.toLowerCase().includes('female')
+            );
+
+            if (femaleVoice) utterance.voice = femaleVoice;
+            else console.log("No female voice found, using default");
+
+            utterance.pitch = 1.5; // High pitch for Chutki
+            utterance.rate = 1.1;  // Slightly faster and energetic
         }
 
         synth.speak(utterance);

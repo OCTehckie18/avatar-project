@@ -44,10 +44,10 @@ except Exception as e:
 
 # --- Helper Functions ---
 
-def analyze_attire(img_array):
+def analyze_attire(img_array, gender):
     """
-    Classifies attire as 'formal_suit' or 'casual' using MobileNetV2.
-    It checks top 5 predictions for suit-related keywords.
+    Classifies attire intelligently based on gender using MobileNetV2.
+    It checks top 5 predictions for keywords associated with the new avatars.
     """
     if attire_model is None:
         return "shirt" # Fallback
@@ -64,26 +64,48 @@ def analyze_attire(img_array):
         # Keywords lists
         suit_keywords = [
             'suit', 'groom', 'tuxedo', 'bow_tie', 'tie', 'Windsor_tie', 
-            'trench_coat', 'academic_gown', 'mortarboard', 'blazer'
+            'trench_coat', 'academic_gown', 'mortarboard', 'blazer', 'vest'
         ]
         
+        saree_keywords = ['sari', 'saree', 'wrap']
+
         traditional_keywords = [
-            'gown', 'kimono', 'sari', 'saree', 'stole', 'poncho', 
-            'cloak', 'vestment', 'pajama', 'sarong', 'velvet', 'wool'
+            'gown', 'kimono', 'stole', 'poncho', 'cloak', 'vestment', 
+            'pajama', 'sarong', 'velvet', 'wool', 'abaya', 'kurta',
+            'sari', 'saree', 'wrap' # In case of male prediction, fallback to traditional
+        ]
+
+        casual_keywords = [
+            'jersey', 't-shirt', 'sweatshirt', 'cardigan', 'swimming_trunks', 
+            'jean', 'miniskirt', 'hoopskirt', 'sweatpants'
         ]
 
         print(f"Attire predictions: {decoded}")
 
         for _, label, score in decoded:
             label_lower = label.lower()
+            
+            # Saree check for females
+            if gender == 'female' and any(keyword in label_lower for keyword in saree_keywords):
+                if score > 0.03: 
+                    return "saree"
+            
+            # Suit check for both
             if any(keyword in label_lower for keyword in suit_keywords):
-                if score > 0.05: 
+                if score > 0.03: 
                     return "suit"
+                    
+            # Traditional check
             if any(keyword in label_lower for keyword in traditional_keywords):
-                if score > 0.05:
+                if score > 0.03:
                     return "traditional"
+            
+            # Casual check
+            if any(keyword in label_lower for keyword in casual_keywords):
+                if score > 0.03:
+                    return "casual" if gender == 'male' else "shirt"
         
-        # Default to 'shirt' (casual) if no strong suit/traditional signal
+        # Default fallback
         return "shirt"
     except Exception as e:
         print(f"Error in attire analysis: {e}")
@@ -174,12 +196,13 @@ def analyze():
         temp_filename = "temp_capture.jpg"
         cv2.imwrite(temp_filename, img_bgr) # Save BGR for OpenCV read compatibility
 
-        # --- Attire Classification ---
-        attire = analyze_attire(img_rgb)
-        
         # --- Gender Detection ---
-        # DeepFace works well with file paths
+        # DeepFace works well with file paths, so run this first
         gender = analyze_gender(temp_filename)
+
+        # --- Attire Classification ---
+        # Evaluate attire using the detected gender
+        attire = analyze_attire(img_rgb, gender)
 
         # Clean up temp file
         if os.path.exists(temp_filename):
