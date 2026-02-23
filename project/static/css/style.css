@@ -548,15 +548,44 @@ button.secondary-btn:hover {
 
 /* Responsive */
 @media (max-width: 1024px) {
+    .app-header {
+        height: 70px;
+        padding: 0 20px;
+    }
+
+    .header-left {
+        font-size: 1.5rem;
+    }
+
+    .header-logo {
+        height: 45px;
+    }
+
+    .app-footer {
+        padding: 8px;
+        font-size: 0.85rem;
+    }
+
     .content-split {
         flex-direction: column;
-        justify-content: center;
-        gap: 3rem;
+        justify-content: flex-end;
+        /* Stack nicely towards bottom if space allows */
+        gap: 0;
+        padding: 0;
+        position: relative;
+        /* Anchor for absolute positioning */
     }
 
     .camera-container {
         justify-content: center;
         padding: 0;
+        margin-top: 1rem;
+        flex: auto;
+    }
+
+    .owl-canvas {
+        max-width: 380px;
+        /* Even bigger */
     }
 
     .input-group {
@@ -567,43 +596,120 @@ button.secondary-btn:hover {
 
     .input-group header {
         text-align: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.5rem;
     }
 
-    .speech-bubble {
-        margin: 0;
-        max-width: 90vw;
-        border-bottom-left-radius: 2rem;
-        border-top-left-radius: 0.5rem;
-        /* Point up? */
+    header h1 {
+        font-size: 2rem;
+        margin-bottom: 0.2rem;
     }
 
-    /* Rotate arrow to point up for stacked layout */
-    .speech-bubble::before {
-        left: 50%;
-        /* Center */
-        top: -20px;
-        /* Top */
-        bottom: auto;
-        transform: translateX(-50%) rotate(90deg);
-        border-right-color: rgba(255, 255, 255, 0.95);
+    header p {
+        font-size: 1rem;
+    }
+
+    .input-wrapper {
+        gap: 0.8rem;
+        width: 100%;
+        max-width: 320px;
+    }
+
+    input {
+        padding: 0.8rem 1.2rem;
+        font-size: 1rem;
+    }
+
+    button {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .full-screen {
+        padding: 1rem;
+    }
+
+    .avatar-box {
+        padding: 0;
+        justify-content: center;
+        align-items: flex-end;
+        /* Ground the character to the footer */
+        height: 100%;
+        width: 100%;
+        display: flex;
     }
 
     #avatarImage {
-        max-height: 40vh;
+        max-height: 75vh;
+        /* Take up absolute full screen height practically */
+        margin-top: auto;
+        object-fit: contain;
     }
 
-    .agenda-box {
-        flex: 0 0 auto;
-        width: 90%;
-        margin-right: 0;
-        margin-bottom: 2rem;
+    .speech-bubble {
+        position: absolute;
+        top: 3vh;
+        /* Start from top of the screen */
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+        max-width: 90vw;
+        width: 100%;
+        padding: 1.2rem;
+        border-radius: 1.5rem;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
     }
 
+    /* Rotate arrow to point DOWN at the character's face */
+    .speech-bubble::before {
+        left: 70%;
+        /* Offset hook to point nicely near the character's head, not straight on it */
+        top: auto;
+        bottom: -20px;
+        transform: translateX(-50%);
+        border: none;
+        border-top: 22px solid rgba(255, 255, 255, 0.95);
+        border-bottom: none;
+        border-right: 18px solid transparent;
+        border-left: 18px solid transparent;
+    }
+
+    .message-content h2 {
+        font-size: 1.4rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .message-content h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .message-content p {
+        font-size: 0.95rem;
+        margin-bottom: 0.2rem;
+        line-height: 1.4;
+    }
+
+    button.secondary-btn {
+        padding: 0.6rem 1.2rem;
+        margin-top: 0.8rem;
+        font-size: 0.95rem;
+    }
+
+    .screen-reader-btn {
+        bottom: 10px;
+        right: 10px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+
+    .agenda-box,
     .delegates-box {
         flex: 0 0 auto;
         width: 90%;
         margin-right: 0;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
+        height: auto;
     }
 }

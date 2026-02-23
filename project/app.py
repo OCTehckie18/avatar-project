@@ -163,6 +163,86 @@ def get_random_message():
 
 # --- Routes ---
 
+# Global attributes for Kiosk Wave Polling
+prev_hand_frame = None
+wave_motion_score = 0
+wave_cooldown = 0
+is_processing_wave = False
+
+@app.route('/detect_wave', methods=['POST'])
+def detect_wave():
+    global prev_hand_frame, wave_motion_score, wave_cooldown, is_processing_wave
+    
+    if is_processing_wave:
+        return jsonify({'wave': False})
+
+    if wave_cooldown > 0:
+        wave_cooldown -= 1
+        return jsonify({'wave': False})
+
+    try:
+        data = request.json
+        image_data = data.get('image')
+        if not image_data: return jsonify({'wave': False})
+
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]
+        
+        img_bytes = base64.b64decode(image_data)
+        nparr = np.frombuffer(img_bytes, np.uint8)
+        img_bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        if img_bgr is None: return jsonify({'wave': False})
+
+        # --- Deep Level OpenCV Motion Tracking Strategies ---
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (21, 21), 0)
+
+        if prev_hand_frame is None:
+            prev_hand_frame = gray
+            return jsonify({'wave': False})
+
+        frame_delta = cv2.absdiff(prev_hand_frame, gray)
+        _, thresh = cv2.threshold(frame_delta, 25, 255, cv2.THRESH_BINARY)
+        thresh = cv2.dilate(thresh, None, iterations=2)
+        
+        contours, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        motion_detected = False
+        for contour in contours:
+            # Significant area threshold validates local, large frame-bursts (like an active hand waving)
+            if cv2.contourArea(contour) > 5000:
+                motion_detected = True
+                break
+                
+        if motion_detected:
+            wave_motion_score += 1
+        else:
+            wave_motion_score = max(0, wave_motion_score - 1)
+            
+        prev_hand_frame = gray
+        
+        # Consistent massive hand motion across 4 frames -> Verified Wave
+        if wave_motion_score >= 4:
+            wave_motion_score = 0
+            wave_cooldown = 15 # Wait frames
+            is_processing_wave = True
+            return jsonify({'wave': True})
+
+        return jsonify({'wave': False})
+
+    except Exception as e:
+        print(f"Error in deep wave detection: {e}")
+        return jsonify({'wave': False})
+
+@app.route('/wave_reset', methods=['POST'])
+def wave_reset():
+    global is_processing_wave, wave_motion_score, prev_hand_frame
+    is_processing_wave = False
+    wave_motion_score = 0
+    prev_hand_frame = None
+    return jsonify({'status': 'reset'})
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -172,7 +252,8 @@ def analyze():
     try:
         data = request.json
         image_data = data.get('image')
-        user_name = data.get('name', 'Guest')
+        user_name = data.get('name', '')
+        user_name = user_name.strip() if user_name else ''
 
         if not image_data:
             return jsonify({'error': 'No image provided'}), 400
@@ -199,6 +280,9 @@ def analyze():
         # --- Gender Detection ---
         # DeepFace works well with file paths, so run this first
         gender = analyze_gender(temp_filename)
+
+        if not user_name:
+            user_name = "Sir" if gender == 'male' else "Ma'am"
 
         # --- Attire Classification ---
         # Evaluate attire using the detected gender

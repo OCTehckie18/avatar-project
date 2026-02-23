@@ -40,6 +40,7 @@
 
                     <!-- Processed Canvas (Visible) -->
                     <canvas id="owlCanvas" class="owl-canvas"></canvas>
+                    <!-- make the owl's finger point to a more gentle hand welcome gesture -->
 
                     <!-- User positioning feedback (Canvas for capture) -->
                     <canvas id="canvas" style="display:none;"></canvas>
@@ -47,12 +48,14 @@
 
                 <div class="input-group">
                     <header class="section-header">
-                        <h1>AI Avatar Kiosk</h1>
-                        <p>Hello, May I know your name please?</p>
+                        <h1>Industry-Academia Conclave 2026</h1>
+                        <p id="namePromptText">Hello, May I know your name please?</p>
                     </header>
                     <div class="input-wrapper">
                         <input type="text" id="nameInput" placeholder="Your Name" autocomplete="off">
                         <button id="captureBtn">Wave Hand! 👋🏻</button>
+                        <button id="nextGuestInputBtn" class="secondary-btn hidden"
+                            style="display: none; width: 100%; margin-top: 0px;">Next Guest</button>
                     </div>
                 </div>
             </div>
@@ -62,7 +65,7 @@
         <div id="result-section" class="container hidden full-screen">
             <div class="content-split">
                 <!-- Agenda Table (Left Side) -->
-                <div class="agenda-box">
+                <!-- <div class="agenda-box">
                     <h2>Agenda</h2>
                     <table>
                         <thead>
@@ -98,18 +101,17 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
+                </div> -->
 
                 <!-- Delegates QR Box (Center/Left) -->
-                <div class="delegates-box">
+                <!-- <div class="delegates-box">
                     <h3>Details of Delegates</h3>
                     <div class="qr-container">
-                        <!-- Placeholder for QR Code, replace src with actual QR image -->
                         <img src="{{ url_for('static', filename='avatars/qr-code-session.jpeg') }}" class="qr-image"
                             alt="Scan for Details">
                     </div>
                     <p>Scan to view</p>
-                </div>
+                </div> -->
 
                 <div class="avatar-box">
                     <img id="avatarImage" src="" alt="Avatar" class="avatar-image">
@@ -140,8 +142,17 @@
     <!-- Global Footer -->
     <footer class="app-footer">
         <p>Project Designer: Dr. Gobi R | Developers: Omkaar(2547237) and Sachin(2547245)</p>
+        <div style="margin-top: 8px; font-size: 0.85rem; opacity: 0.8;">
+            <a href="?view=display" target="_blank"
+                style="color: white; margin-right: 15px; text-decoration: underline;">Open Owl Window</a>
+            <a href="?view=input" target="_blank"
+                style="color: white; margin-right: 15px; text-decoration: underline;">Open Input Window</a>
+            <a href="?" style="color: white;">Reset to Combined View</a>
+        </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 

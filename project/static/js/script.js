@@ -12,6 +12,78 @@ document.addEventListener('DOMContentLoaded', () => {
     const dynamicMessageContent = document.getElementById('dynamicMessageContent');
     const avatarImage = document.getElementById('avatarImage');
     const resetBtn = document.getElementById('resetBtn');
+    const nextGuestInputBtn = document.getElementById('nextGuestInputBtn');
+    const namePromptText = document.getElementById('namePromptText');
+
+    // Detect View Mode for Kiosk Panel Setup
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewMode = urlParams.get('view') || 'combined'; // 'input', 'display', 'combined'
+
+    // Use Broadcast Channel API for multi-window communication
+    const channel = new BroadcastChannel('kiosk_channel');
+
+    // Apply specific CSS adjustments according to what window we are supposed to be rendering
+    if (viewMode === 'display') {
+        document.querySelector('.input-group').style.display = 'none';
+        document.querySelector('.camera-container').style.flex = '1';
+        document.querySelector('.camera-container').style.justifyContent = 'center';
+        document.querySelector('.camera-container').style.paddingRight = '0';
+        resetBtn.style.display = 'none'; // No "Next Guest" on display screen
+    } else if (viewMode === 'input') {
+        owlCanvas.style.display = 'none';
+        document.querySelector('.camera-container').style.flex = '0';
+        document.querySelector('.camera-container').style.padding = '0';
+        document.querySelector('.input-group').style.alignItems = 'center';
+        document.querySelector('.input-group').style.width = '100%';
+        resetBtn.style.display = 'none'; // The primary result reset button is disabled, we use nextGuestInputBtn
+    }
+
+    // Text to Speech
+    let synth = window.speechSynthesis;
+    let voices = [];
+
+    function loadVoices() {
+        voices = synth.getVoices();
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    loadVoices();
+
+    function speakMessage(text, gender) {
+        if (synth.speaking) {
+            synth.cancel();
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        if (voices.length === 0) voices = synth.getVoices();
+
+        if (gender === 'male') {
+            const maleVoice = voices.find(voice =>
+                voice.name.includes('David') ||
+                voice.name.includes('Google UK English Male') ||
+                (voice.name.toLowerCase().includes('male') && !voice.name.toLowerCase().includes('female'))
+            );
+            if (maleVoice) utterance.voice = maleVoice;
+            utterance.pitch = 0.8;
+            utterance.rate = 0.95;
+        } else {
+            const femaleVoice = voices.find(voice =>
+                voice.name.includes('Zira') ||
+                voice.name.includes('Google UK English Female') ||
+                voice.name.includes('Samantha') ||
+                voice.name.toLowerCase().includes('female')
+            );
+            if (femaleVoice) utterance.voice = femaleVoice;
+            utterance.pitch = 1.5;
+            utterance.rate = 1.1;
+        }
+
+        synth.speak(utterance);
+    }
 
     // Green Screen Logic for Owl
     function setupGreenScreen(videoEl, canvasEl) {
@@ -29,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 processCtx.canvas.height = videoEl.videoHeight;
             }
 
-            // Draw video to offscreen canvas
             processCtx.drawImage(videoEl, 0, 0, processCtx.canvas.width, processCtx.canvas.height);
             const frame = processCtx.getImageData(0, 0, processCtx.canvas.width, processCtx.canvas.height);
             const l = frame.data.length / 4;
@@ -40,15 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const b = frame.data[i * 4 + 2];
 
                 // Target Color: #73B55D => R=115, G=181, B=93
-                // Euclidean distance
                 const dist = Math.sqrt(
                     Math.pow(r - 115, 2) +
                     Math.pow(g - 181, 2) +
                     Math.pow(b - 93, 2)
                 );
 
-                if (dist < 90) { // Threshold for Green Screen
-                    frame.data[i * 4 + 3] = 0; // Alpha = 0 (Transparent)
+                if (dist < 90) {
+                    frame.data[i * 4 + 3] = 0;
                 }
             }
             targetCtx.putImageData(frame, 0, 0);
@@ -76,51 +146,161 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const owlProcessor = setupGreenScreen(owlVideo, owlCanvas);
-    owlProcessor.start();
+    if (viewMode !== 'input') {
+        // Start owl processing only if we need to see it (saves resources on input panel)
+        owlProcessor.start();
+    }
+
+    let isProcessingWave = false;
+    let waveDetectionInterval;
 
     // Access Webcam (Silent, for capture only)
     async function startCamera() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             video.srcObject = stream;
-            // Video is hidden by CSS, but active
+
+            // Deep Level Server-Side Waving Detection via App.py API Polling
+            waveDetectionInterval = setInterval(async () => {
+                // Ensure we only poll when camera is actively used and not hidden
+                if (video.paused || video.ended || isProcessingWave || cameraSection.classList.contains('hidden') || viewMode === 'display') {
+                    return;
+                }
+
+                const context = captureCanvas.getContext('2d');
+                captureCanvas.width = video.videoWidth;
+                captureCanvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+                // Heavily compress frame to maintain 10fps network stability locally
+                const dataURL = captureCanvas.toDataURL('image/jpeg', 0.5);
+
+                try {
+                    const response = await fetch('/detect_wave', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: dataURL })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.wave && !isProcessingWave) {
+                        isProcessingWave = true;
+                        console.log("Deep Level Backend Motion Detected! Translating Wave.");
+                        captureBtn.click();
+                    }
+                } catch (err) {
+                    // Ignore connection drops natively
+                }
+            }, 120); // roughly ~8 fps
+
         } catch (err) {
             console.error("Error accessing webcam: ", err);
             alert("Could not access webcam. Please allow permissions.");
         }
     }
 
-    startCamera();
+    if (viewMode === 'input' || viewMode === 'combined') {
+        // Only spin up the user webcam on the input or combined window
+        startCamera();
+    }
+
+    // --- Modular Core Actions ---
+
+    function showResult(data) {
+        greetingName.textContent = `Hi ${data.name},`;
+
+        if (data.message) {
+            dynamicMessageContent.innerHTML = `<h3>${data.message}</h3>`;
+        }
+
+        const gender = data.gender.toLowerCase();
+        const attire = data.attire;
+        const imagePath = `/static/avatars/${gender}_${attire}.png`;
+
+        avatarImage.src = imagePath;
+        avatarImage.onerror = function () {
+            avatarImage.src = '/static/avatars/male_suit.png';
+        };
+
+        cameraSection.classList.add('hidden');
+        resultSection.classList.remove('hidden');
+
+        if (viewMode !== 'input') {
+            owlProcessor.stop();
+        }
+
+        const welcomeText = `Hi ${data.name}, ${data.message || ""}`;
+        setTimeout(() => {
+            speakMessage(welcomeText, gender);
+        }, 1000);
+    }
+
+    function resetDisplay() {
+        resultSection.classList.add('hidden');
+        cameraSection.classList.remove('hidden');
+        if (viewMode !== 'input') {
+            owlProcessor.start();
+        }
+        if (synth.speaking) {
+            synth.cancel();
+        }
+    }
+
+    function resetInput() {
+        nameInput.value = '';
+        nameInput.style.display = 'block';
+        captureBtn.style.display = 'block';
+        if (namePromptText) namePromptText.style.display = 'block';
+        if (nextGuestInputBtn) {
+            nextGuestInputBtn.style.display = 'none';
+        }
+
+        // Ensure backend resets frame processing memory
+        fetch('/wave_reset', { method: 'POST' }).catch(e => console.error(e));
+        isProcessingWave = false;
+    }
+
+    // --- Multi-Window Orchestration Listener ---
+    channel.onmessage = (event) => {
+        if (event.data.type === 'result') {
+            if (viewMode === 'display' || viewMode === 'combined') {
+                showResult(event.data.data);
+            }
+        } else if (event.data.type === 'reset') {
+            if (viewMode === 'display' || viewMode === 'combined') {
+                resetDisplay();
+            }
+            if (viewMode === 'input' || viewMode === 'combined') {
+                resetInput();
+            }
+        }
+    };
+
+    // --- User Interactions ---
+    nameInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            captureBtn.click();
+        }
+    });
 
     captureBtn.addEventListener('click', async () => {
         const name = nameInput.value.trim();
-        if (!name) {
-            alert("Please enter your name.");
-            return;
-        }
 
-        // Show loading
         loadingOverlay.classList.remove('hidden');
 
-        // Capture frame from WEBCAM video to hidden canvas
+        // Capture frame
         const context = captureCanvas.getContext('2d');
         captureCanvas.width = video.videoWidth;
         captureCanvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
-
         const dataURL = captureCanvas.toDataURL('image/jpeg');
 
-        // Send to backend
         try {
             const response = await fetch('/analyze', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    image: dataURL,
-                    name: name
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: dataURL, name: name })
             });
 
             const data = await response.json();
@@ -132,42 +312,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Update UI with response
-            greetingName.textContent = `Hi ${data.name},`;
-
-            // Update dynamic message
-            if (data.message) {
-                dynamicMessageContent.innerHTML = `<h3>${data.message}</h3>`;
-            }
-
-            // Map detected attire to expected file suffix
-            const gender = data.gender.toLowerCase();
-            const attire = data.attire; // 'suit', 'traditional', 'shirt'
-
-            // Construct filename
-            const imagePath = `/static/avatars/${gender}_${attire}.png`;
-
-            console.log("Setting avatar source:", imagePath);
-            avatarImage.src = imagePath;
-
-            avatarImage.onerror = function () {
-                console.warn(`Image not found: ${imagePath}. Creating fallback.`);
-                avatarImage.src = '/static/avatars/male_suit.png'; // Fallback
-            };
-
-            // Switch views
             loadingOverlay.classList.add('hidden');
-            cameraSection.classList.add('hidden');
-            resultSection.classList.remove('hidden');
 
-            // Stop Owl Loop to save resources
-            owlProcessor.stop();
+            if (viewMode === 'input') {
+                // Actions confined to the Input Panel ONLY
+                nameInput.style.display = 'none';
+                captureBtn.style.display = 'none';
+                if (namePromptText) namePromptText.style.display = 'none';
 
-            // Auto-read message
-            const welcomeText = `Hi ${data.name}, ${data.message || ""}`;
-            setTimeout(() => {
-                speakMessage(welcomeText, gender);
-            }, 1000);
+                if (nextGuestInputBtn) {
+                    nextGuestInputBtn.style.display = 'block';
+                    nextGuestInputBtn.classList.remove('hidden');
+                }
+
+                // Blast result globally to Owl Displays
+                channel.postMessage({ type: 'result', data: data });
+            } else {
+                // Actions confined to the default local full Combined Panel
+                channel.postMessage({ type: 'result', data: data }); // Notify any other connected screens just in case
+                showResult(data);
+            }
 
         } catch (err) {
             console.error("Network error:", err);
@@ -176,74 +340,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Handle Reset action trigger from either button or panel
     resetBtn.addEventListener('click', () => {
-        // Reset UI
-        nameInput.value = '';
-        resultSection.classList.add('hidden');
-        cameraSection.classList.remove('hidden');
-
-        // Restart Owl
-        owlProcessor.start();
-
-        // Stop speaking
-        if (synth.speaking) {
-            synth.cancel();
-        }
+        channel.postMessage({ type: 'reset' });
+        resetDisplay();
+        resetInput();
     });
 
-    // Text to Speech
-    let synth = window.speechSynthesis;
-    let voices = [];
-
-    function loadVoices() {
-        voices = synth.getVoices();
-    }
-
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = loadVoices;
-    }
-
-    // Initial load
-    loadVoices();
-
-    function speakMessage(text, gender) {
-        if (synth.speaking) {
-            synth.cancel();
-        }
-
-        const utterance = new SpeechSynthesisUtterance(text);
-
-        if (voices.length === 0) voices = synth.getVoices();
-
-        if (gender === 'male') {
-            // Bheem's Sound (young, robust boy)
-            const maleVoice = voices.find(voice =>
-                voice.name.includes('David') ||
-                voice.name.includes('Google UK English Male') ||
-                (voice.name.toLowerCase().includes('male') && !voice.name.toLowerCase().includes('female'))
-            );
-
-            if (maleVoice) utterance.voice = maleVoice;
-            else console.log("No male voice found, using default");
-
-            utterance.pitch = 0.8; // Deeper pitch for Bheem
-            utterance.rate = 0.95; // Slightly slower, stronger tone
-        } else {
-            // Chutki's Sound (sweet, high pitched girl)
-            const femaleVoice = voices.find(voice =>
-                voice.name.includes('Zira') ||
-                voice.name.includes('Google UK English Female') ||
-                voice.name.includes('Samantha') ||
-                voice.name.toLowerCase().includes('female')
-            );
-
-            if (femaleVoice) utterance.voice = femaleVoice;
-            else console.log("No female voice found, using default");
-
-            utterance.pitch = 1.5; // High pitch for Chutki
-            utterance.rate = 1.1;  // Slightly faster and energetic
-        }
-
-        synth.speak(utterance);
+    if (nextGuestInputBtn) {
+        nextGuestInputBtn.addEventListener('click', () => {
+            channel.postMessage({ type: 'reset' });
+            resetDisplay();
+            resetInput();
+        });
     }
 });
